@@ -1,5 +1,5 @@
 // 文件名: sip/sip.c
-// 
+//
 // 描述: 这个文件实现SIP进程
 
 #include "sip.h"
@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
@@ -35,15 +36,33 @@ int son_conn;  // 到重叠网络的连接
 // 成功时返回连接描述符, 否则返回-1
 int connectToSON() {
   // 你需要编写这里的代码.
-  return 0;
+  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  struct sockaddr_in servaddr;
+  bzero(&servaddr, sizeof(servaddr));
+  servaddr.sin_family = AF_INET;
+  servaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  servaddr.sin_port = htons(SON_PORT);
+
+  if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0)
+    return -1;
+
+  return sockfd;
 }
 
 // 这个线程每隔ROUTEUPDATE_INTERVAL时间就发送一条路由更新报文
 // 在本实验中, 这个线程只广播空的路由更新报文给所有邻居,
 // 我们通过设置SIP报文首部中的dest_nodeID为BROADCAST_NODEID来发送广播
 void* routeupdate_daemon(void* arg) {
-  // 你需要编写这里的代码.
-  return 0;
+  sip_pkt_t pkt;
+
+  while (1) {
+    sleep(ROUTEUPDATE_INTERVAL);
+    memset(&pkt, 0, sizeof(sip_pkt_t));
+    pkt.header.type = ROUTE_UPDATE;
+    pkt.header.dest_nodeID = BROADCAST_NODEID;
+
+    son_sendpkt(BROADCAST_NODEID, &pkt, son_conn);
+  }
 }
 
 // 这个线程处理来自SON进程的进入报文
@@ -63,9 +82,7 @@ void* pkthandler(void* arg) {
 
 // 这个函数终止SIP进程, 当SIP进程收到信号SIGINT时会调用这个函数.
 // 它关闭所有连接, 释放所有动态分配的内存.
-void sip_stop() {
-  // 你需要编写这里的代码.
-}
+void sip_stop() { close(son_conn); }
 
 int main(int argc, char* argv[]) {
   printf("SIP layer is starting, please wait...\n");
