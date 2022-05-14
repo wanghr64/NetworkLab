@@ -110,6 +110,8 @@ void* listen_to_neighbor(void* arg) {
   memset(&pkt, 0, sizeof(sip_pkt_t));
   while (1) {
     recvpkt(&pkt, nt[idx].conn);
+    printf("Received a package from node %d.\n", nt[idx].nodeID);
+    pkt.header.src_nodeID = topology_getMyNodeID();
     forwardpktToSIP(&pkt, sip_conn);
   }
 
@@ -146,8 +148,13 @@ void waitSIP() {
       exit(-1);
     }
     // 如果下一跳的节点ID为BROADCAST_NODEID，报文应发送到所有邻居节点.
+    pkt.header.src_nodeID = topology_getMyNodeID();
+    pkt.header.src_nodeID = nextNode;
     if (nextNode == BROADCAST_NODEID) {
+      printf("getpktToSend, Broadcast.\n");
+      for (int i = 0; i < nbr_table_size; ++i) sendpkt(&pkt, nt[i].conn);
     } else {
+      printf("getpktToSend, next node is %d.\n", nextNode);
       nbr_entry_t* next_nt = get_nt_by_ID(nt, nextNode);
       sendpkt(&pkt, next_nt->conn);
     }
