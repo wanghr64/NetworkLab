@@ -165,6 +165,7 @@ void waitSIP() {
 // 它关闭所有的连接, 释放所有动态分配的内存.
 void son_stop() {
   close(sip_conn);
+  for (int i = 0; i < nbr_table_size; ++i) close(nt[i].conn);
   nt_destroy(nt);
 }
 
