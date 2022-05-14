@@ -12,6 +12,8 @@
 
 #define TEST_API 0
 
+static char ifa_name[] = {"enp0s8"};
+
 // 这个函数返回指定主机的节点ID.
 // 节点ID是节点IP地址最后8位表示的整数.
 // 例如, 一个节点的IP地址为202.119.32.12, 它的节点ID就是12.
@@ -49,7 +51,8 @@ int topology_getMyNodeID() {
   for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
     if (ifa->ifa_addr == NULL) continue;
 
-    if (ifa->ifa_addr->sa_family == AF_INET && !(ifa->ifa_flags & 8)) {
+    if (ifa->ifa_addr->sa_family == AF_INET && !(ifa->ifa_flags & 8) &&
+        !strcmp(ifa_name, ifa->ifa_name)) {
       int res = topology_getNodeIDfromip(
           &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr);
       freeifaddrs(ifaddr);

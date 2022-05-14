@@ -14,13 +14,17 @@ int nbr_table_size;
 // 填充所有条目中的nodeID和nodeIP字段, 将conn字段初始化为-1.
 // 返回创建的邻居表.
 nbr_entry_t* nt_create() {
+  char* temp_ip_addr = malloc(16);
+  struct sockaddr_in addr_struct;
   nbr_table_size = topology_getNbrNum();
   int* nbr_nodes = topology_getNbrArray();
   nbr_entry_t* res = malloc(sizeof(nbr_entry_t) * nbr_table_size);
   for (int i = 0; i < nbr_table_size; ++i) {
     res[i].conn = -1;
     res[i].nodeID = nbr_nodes[i];
-    // TODO: fill nodeIP
+    sprintf(temp_ip_addr, "192.168.56.%d", res[i].nodeID);
+    inet_pton(AF_INET, temp_ip_addr, &addr_struct.sin_addr);
+    res[i].nodeIP = addr_struct.sin_addr.s_addr;
   }
   return res;
 }
@@ -41,6 +45,7 @@ int nt_addconn(nbr_entry_t* nt, int nodeID, int conn) {
       if (nt[i].conn == -1) {
         nt[i].conn = conn;
         return 1;
+        printf("Connected to node %d.\n", nodeID);
       } else
         return -1;
     }

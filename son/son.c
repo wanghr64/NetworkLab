@@ -30,7 +30,7 @@
 #include "neighbortable.h"
 
 // 你应该在这个时间段内启动所有重叠网络节点上的SON进程
-#define SON_START_DELAY 60
+#define SON_START_DELAY 10
 
 /**************************************************************/
 // 声明全局变量
@@ -67,6 +67,7 @@ void* waitNbrs(void* arg) {
   listen(listenfd, 1024);
 
   int connected_sum = 0;
+  printf("Need to listen to %d nodes.\n", bigger_nbr_num);
   while (connected_sum < bigger_nbr_num) {
     clilen = sizeof(cliaddr);
     connfd = accept(listenfd, (struct sockaddr*)&cliaddr, &clilen);
@@ -88,11 +89,13 @@ int connectNbrs() {
 
       bzero(&servaddr, sizeof(servaddr));
       servaddr.sin_family = AF_INET;
-      servaddr.sin_port = CONNECTION_PORT;
+      servaddr.sin_port = htons(CONNECTION_PORT);
       servaddr.sin_addr.s_addr = nt[i].nodeIP;
       if (connect(nt[i].conn, (struct sockaddr*)&servaddr, sizeof(servaddr)) <
-          0)
+          0) {
+        printf("Failed to connect to %s.\n", inet_ntoa(servaddr.sin_addr));
         return -1;
+      }
     }
   }
   return 1;
@@ -174,7 +177,10 @@ int main() {
   int nbrNum = topology_getNbrNum();
   int i;
   for (i = 0; i < nbrNum; i++) {
-    printf("Overlay network: neighbor %d:%d\n", i + 1, nt[i].nodeID);
+    struct in_addr addr;
+    addr.s_addr = nt[i].nodeIP;
+    printf("Overlay network: neighbor %d:%d, IP: %s\n", i + 1, nt[i].nodeID,
+           inet_ntoa(addr));
   }
 
   // 启动waitNbrs线程, 等待节点ID比自己大的所有邻居的进入连接

@@ -9,6 +9,8 @@
         "neighbortable.h": "c",
         "stdlib.h": "c",
         "stdio.h": "c",
-        "types.h": "c"
+        "types.h": "c",
+        "stddef.h": "c",
+        "errno.h": "c"
     }
 }
