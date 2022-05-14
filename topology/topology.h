@@ -1,10 +1,12 @@
 // 文件名: topology/topology.h
-// 
+//
 // 描述: 这个文件声明一些用于解析拓扑文件的辅助函数
 
 #ifndef TOPOLOGY_H
 #define TOPOLOGY_H
 #include <netdb.h>
+
+#include "../common/constants.h"
 
 // 这个函数返回指定主机的节点ID.
 // 节点ID是节点IP地址最后8位表示的整数.
